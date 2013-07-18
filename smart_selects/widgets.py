@@ -91,12 +91,12 @@ class ChainedSelect(Select):
             }
 
             $(document).ready(function(){
-                function fill_field(val, init_value){
+                function fill_field(id, val, init_value){
                     if (!val || val==''){
                         options = '<option value="">%(empty_label)s<'+'/option>';
-                        $("#%(id)s").html(options);
-                        $('#%(id)s option:first').attr('selected', 'selected');
-                        $("#%(id)s").trigger('change');
+                        $(id).html(options);
+                        $(id+' option:first').attr('selected', 'selected');
+                        $(id).trigger('change');
                         return;
                     }
                     $.getJSON("%(url)s/"+val+"/", function(j){
@@ -104,31 +104,37 @@ class ChainedSelect(Select):
                         for (var i = 0; i < j.length; i++) {
                             options += '<option value="' + j[i].value + '">' + j[i].display + '<'+'/option>';
                         }
-                        var width = $("#%(id)s").outerWidth();
-                        $("#%(id)s").html(options);
-                        if (navigator.appVersion.indexOf("MSIE") != -1)
-                            $("#%(id)s").width(width + 'px');
-                        $('#%(id)s option:first').attr('selected', 'selected');
+                        $(id).html(options);
+                        $(id+' option:first').attr('selected', 'selected');
                         var auto_choose = %(auto_choose)s;
                         if(init_value){
-                            $('#%(id)s option[value="'+ init_value +'"]').attr('selected', 'selected');
+                            $(id+' option[value="'+ init_value +'"]').attr('selected', 'selected');
                         }
                         if(auto_choose && j.length == 1){
-                            $('#%(id)s option[value="'+ j[0].value +'"]').attr('selected', 'selected');
+                            $(id+' option[value="'+ j[0].value +'"]').attr('selected', 'selected');
                         }
-                        $("#%(id)s").trigger('change');
+                        $(id).trigger('change');
                     })
                 }
 
-                if(!$("#id_%(chainfield)s").hasClass("chained")){
+                if(!$("#id_%(chainfield)s").hasClass("chained")) {
                     var val = $("#id_%(chainfield)s").val();
-                    fill_field(val, "%(value)s");
+                    if ("%(value)s" != 'None') { 
+                        fill_field(val, "%(value)s"); }
                 }
 
-                $("#id_%(chainfield)s").change(function(){
-                    var start_value = $("#%(id)s").val();
-                    var val = $(this).val();
-                    fill_field(val, start_value);
+                $("#id_%(chainfield)s").change(function() {
+                    var self = $(this);
+                    var curr_parts = self.attr('id').split('-');
+                    var base_parts = "%(id)s".split('-');
+                    var id = '#';
+                    for (var i = 0; i < curr_parts.length-1; i++) { 
+                        id += curr_parts[i] + '-'; 
+                    }
+                    id += base_parts[base_parts.length-1];
+                    var start_value = $(id).val();
+                    var val = self.val();
+                    fill_field(id, val, start_value);
                 })
             })
             if (typeof(dismissAddAnotherPopup) !== 'undefined') {
